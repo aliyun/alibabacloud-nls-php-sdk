@@ -27,6 +27,8 @@ class SpeechRecognizerRequest
     protected $_payloadParam;
     protected $_contextParam;
 
+    protected $_curStatus = 'Idle';
+
     /**
      * 与本地服务通信的请求client
      */
@@ -177,6 +179,12 @@ class SpeechRecognizerRequest
     {
         if (isset($this->_workerRequest))
         {
+            if ($this->_curStatus != 'Idle')
+            {
+                Console::error("[Recognizer] start status is invalid");
+                return false;
+            }
+
             // 1. Worker切入StartRecognition模式
             $this->_workerRequest->text('StartRecognition');
 
@@ -214,6 +222,7 @@ class SpeechRecognizerRequest
             $this->_workerRequest->text('heartbeat');
             $response = $this->_workerRequest->receive(true);
             $arrayObj = $this->_recognizerParams->parseResponse($response);
+            $this->_curStatus = 'Started';
             return $arrayObj;
         }
         else
@@ -227,6 +236,12 @@ class SpeechRecognizerRequest
     {
         if (isset($this->_workerRequest))
         {
+            if ($this->_curStatus != 'Started')
+            {
+                Console::error("[Recognizer] stop status is invalid");
+                return false;
+            }
+
             $this->_workerRequest->text('StopRecognition');
 
             $stopHeaders = NlsParameters::generateRequestHeader(
@@ -272,6 +287,7 @@ class SpeechRecognizerRequest
             $this->_workerRequest->close();
             unset($this->_workerRequest);
 
+            $this->_curStatus = 'Idle';
             return $arrayObj;
         }
         else
@@ -283,6 +299,12 @@ class SpeechRecognizerRequest
 
     public function sendAudio(string $data, int $length)
     {
+        if ($this->_curStatus != 'Started')
+        {
+            Console::error("[Recognizer] sendAudio status is invalid");
+            return false;
+        }
+
         $this->_workerRequest->binary($data);
         $response = $this->_workerRequest->receive(false);
         if (is_string($response))

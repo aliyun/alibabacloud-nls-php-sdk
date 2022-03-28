@@ -28,6 +28,8 @@ class SpeechTranscriberRequest
     protected $_payloadParam;
     protected $_contextParam;
 
+    protected $_curStatus = 'Idle';
+
     /**
      * 与本地服务通信的请求client
      */
@@ -203,6 +205,12 @@ class SpeechTranscriberRequest
     {
         if (isset($this->_workerRequest))
         {
+            if ($this->_curStatus != 'Idle')
+            {
+                Console::error("[Transcriber] start status is invalid");
+                return false;
+            }
+
             // 1. Worker切入StartTranscription模式
             $this->_workerRequest->text('StartTranscription');
 
@@ -240,6 +248,7 @@ class SpeechTranscriberRequest
             $this->_workerRequest->text('heartbeat');
             $response = $this->_workerRequest->receive(true);
             $arrayObj = $this->_transcriberParams->parseResponse($response);
+            $this->_curStatus = 'Started';
             return $arrayObj;
         }
         else
@@ -253,6 +262,12 @@ class SpeechTranscriberRequest
     {
         if (isset($this->_workerRequest))
         {
+            if ($this->_curStatus != 'Started')
+            {
+                Console::error("[Transcriber] stop status is invalid");
+                return false;
+            }
+
             $this->_workerRequest->text('StopTranscription');
 
             $stopHeaders = NlsParameters::generateRequestHeader(
@@ -298,6 +313,8 @@ class SpeechTranscriberRequest
             $this->_workerRequest->close();
             unset($this->_workerRequest);
 
+            $this->_curStatus = 'Idle';
+
             return $arrayObj;
         }
         else
@@ -309,6 +326,12 @@ class SpeechTranscriberRequest
 
     public function sendAudio(string $data, int $length)
     {
+        if ($this->_curStatus != 'Started')
+        {
+            Console::error("[Transcriber] sendAudio status is invalid");
+            return false;
+        }
+
         $this->_workerRequest->binary($data);
         $response = $this->_workerRequest->receive(false);
         if (is_string($response))

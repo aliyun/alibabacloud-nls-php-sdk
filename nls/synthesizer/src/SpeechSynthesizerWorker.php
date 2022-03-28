@@ -42,7 +42,11 @@ class SpeechSynthesizerWorker
             Console::info(sprintf("[%s] worker started", $this->_worker->name));
         };
 
-        // 当有客户端发来消息时执行的回调函数
+        /**
+         * 当有客户端发来消息时执行的回调函数
+         * status: Idle -> Connecting -> Connected -> Working
+         *          ^____________________________________|
+         */
         $this->_worker->onMessage = function($connection, $data)
         {
             if ($this->_curStatus === 'Idle')
@@ -129,6 +133,7 @@ class SpeechSynthesizerWorker
         $this->_worker->onClose = function($connection)
         {
             Console::info(sprintf("[%s] worker closed", $this->_worker->name));
+            $this->_curStatus = 'Idle';
         };
     }
 

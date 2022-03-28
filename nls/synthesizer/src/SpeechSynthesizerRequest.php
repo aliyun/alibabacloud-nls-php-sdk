@@ -24,6 +24,8 @@ class SpeechSynthesizerRequest
     protected $_payloadParam;
     protected $_contextParam;
 
+    protected $_curStatus = 'Idle';
+
     /**
      * 与本地服务通信的请求client
      */
@@ -165,6 +167,12 @@ class SpeechSynthesizerRequest
     {
         if (isset($this->_workerRequest))
         {
+            if ($this->_curStatus != 'Idle')
+            {
+                Console::error("[Synthesizer] start status is invalid");
+                return false;
+            }
+
             // 1. Worker切入StartSynthesis模式
             $this->_workerRequest->text('StartSynthesis');
 
@@ -200,6 +208,7 @@ class SpeechSynthesizerRequest
             ]);
             Console::debug("start cmd: $startCmd");
             $this->_workerRequest->text($startCmd);
+            $this->_curStatus = 'Started';
             return true;
         }
         else
@@ -225,6 +234,8 @@ class SpeechSynthesizerRequest
 
                     unset($this->_taskId);
                     unset($this->_workerRequest);
+
+                    $this->_curStatus = 'Idle';
                 }
                 return $arrayObj;
             }
