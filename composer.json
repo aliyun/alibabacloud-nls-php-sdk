@@ -1,0 +1,29 @@
+{
+  "name": "alibabacloud/nls-sdk",
+  "description": "Alibaba Cloud NLS SDK for PHP",
+  "type": "library",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Alibaba",
+      "homepage": "https://help.aliyun.com/product/30413.html"
+    }
+  ],
+  "require": {
+    "php": ">7.1",
+    "alibabacloud/sts-20150401": "^1.1.0",
+    "alibabacloud/darabonba-openapi": "^0.2.3",
+    "alibabacloud/tea-console": "^0.1.0",
+    "alibabacloud/tea-utils": "^0.2.0",
+    "walkor/workerman": "^3.5"
+  },
+  "scripts": {
+    "fixer": "php-cs-fixer fix ./"
+  },
+  "config": {
+    "sort-packages": true,
+    "preferred-install": "dist",
+    "optimize-autoloader": true
+  },
+  "prefer-stable": true
+}
